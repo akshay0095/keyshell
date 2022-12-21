@@ -12,7 +12,7 @@ pipeline {
     stages {
         stage('SCM') {
             steps {
-                git branch: 'master', url: 'https://github.com/ajilraju/keyshell.git'
+                git branch: 'master', url: 'https://github.com/akshay0095/keyshell.git'
             }
         }
         stage('Install Deps') {
