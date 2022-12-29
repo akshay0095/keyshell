@@ -1,47 +1,53 @@
 pipeline {
     agent any
+
     tools {
-        nodejs '16.17.0'
+         nodejs 'nodejs 16.16.0' //Provide Node & npm bin/folder to PATH 
+
     }
-  
-    options {
-        retry(2)
-        timestamps()
-    }
-  
+
     stages {
+
         stage('SCM') {
             steps {
-                git branch: 'master', url: 'https://github.com/akshay0095/keyshell.git'
+                git 'https://github.com/akshay0095/keyshell.git'
             }
         }
-        stage('Install Deps') {
+
+        stage('NPM install') {
             steps {
                 sh 'npm install'
             }
         }
+
         stage('Build') {
             steps {
                 sh 'ng build'
             }
             post {
                 success {
-                    fingerprint 'dist/keyshell'
+                    fingerprint '/dist/keyshell/' // to enable the plugin 'fingerprint' to this dir. 
                 }
             }
         }
-        stage('Deploy to Apache2') {
-            steps {
-                sh 'rsync -avzP dist/keyshell/* /var/www/html/'
-            }
-        }
-        stage('Archive Artifacts') {
-            steps {
+
+        stage('Deploy') {
+            steps { 
                 sh '''
-                  zip -r archive.zip dist/keyshell/*
+                  rm -rf /var/www/html/*
+                  sleep 3
+                  rsync -avzP dist/keyshell /var/www/html/
                 '''
-                archiveArtifacts artifacts: 'archive.zip', fingerprint: true, onlyIfSuccessful: true
             }
         }
+
+        stage('Artefact') {
+            steps {
+                sh 'tar cvzf app.tar.gz dist/keyshell/'
+                archiveArtifacts artifacts: 'app.tar.gz', fingerprint: true, followSymlinks: false, onlyIfSuccessful: true
+            }
+        }
+
+
     }
 }
